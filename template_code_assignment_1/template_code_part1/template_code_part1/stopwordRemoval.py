@@ -24,9 +24,15 @@ class StopwordRemoval():
 			representing a sentence with stopwords removed
 		"""
 
-		stopwordRemovedText = None
+		nltk.download('stopwords')
 
-		#Fill in code here
+		stopwordRemovedText = []
+
+		stop_words = set(stopwords.words("english"))
+
+		for sentence in text:
+			filtered_sentence = [word for word in sentence if word.lower() not in stop_words]
+			stopwordRemovedText.append(filtered_sentence)
 
 		return stopwordRemovedText
 

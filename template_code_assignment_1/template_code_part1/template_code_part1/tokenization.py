@@ -2,9 +2,6 @@ from util import *
 
 # Add your import statements here
 
-
-
-
 class Tokenization():
 
 	def naive(self, text):
@@ -22,13 +19,13 @@ class Tokenization():
 			A list of lists where each sub-list is a sequence of tokens
 		"""
 
-		tokenizedText = None
-
-		#Fill in code here
-
+		tokenizedText = []
+		
+		for sentence in text:
+			tokens = sentence.split()  # Split each sentence into tokens
+			tokenizedText.append(tokens)
+		
 		return tokenizedText
-
-
 
 	def pennTreeBank(self, text):
 		"""
@@ -45,8 +42,10 @@ class Tokenization():
 			A list of lists where each sub-list is a sequence of tokens
 		"""
 
-		tokenizedText = None
+		tokenizedText = []
 
-		#Fill in code here
+		for sentence in text:
+			tokens = word_tokenize(sentence) #using NLTK's word tokenize function
+			tokenizedText.append(tokens)
 
 		return tokenizedText

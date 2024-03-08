@@ -1,10 +1,5 @@
 from util import *
 
-# Add your import statements here
-
-
-
-
 class InflectionReduction:
 
 	def reduce(self, text):
@@ -24,9 +19,13 @@ class InflectionReduction:
 			stemmed/lemmatized tokens representing a sentence
 		"""
 
-		reducedText = None
+		reducedText = []
 
-		#Fill in code here
+		stemmer = PorterStemmer()
+
+		for sentence in text:
+			stemmed_sentence = [stemmer.stem(token) for token in sentence]
+			reducedText.append(stemmed_sentence)
 		
 		return reducedText
 

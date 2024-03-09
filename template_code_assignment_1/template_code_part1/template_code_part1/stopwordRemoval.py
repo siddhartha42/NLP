@@ -22,8 +22,6 @@ class StopwordRemoval():
 			representing a sentence with stopwords removed
 		"""
 
-		nltk.download('stopwords')
-
 		stopwordRemovedText = []
 
 		stop_words = set(stopwords.words("english"))

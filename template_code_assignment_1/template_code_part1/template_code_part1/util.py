@@ -9,10 +9,50 @@ import json
 from collections import Counter
 from itertools import product
 import math
+import re
 
 # Add any utility functions here
 
-import re
+def editDistance(str1, str2):
+    m = len(str1)
+    n = len(str2)
+    
+    # Define costs for insertion, deletion, and substitution
+    insert_cost = 3
+    delete_cost = 3
+    substitute_cost = 4
+
+    # Create a table to store results of subproblems
+    dp = [[0 for x in range(n + 1)] for x in range(m + 1)]
+ 
+    # Fill d[][] in bottom up manner
+    for i in range(m + 1):
+        for j in range(n + 1):
+            # If first string is empty, only option is to
+            # insert all characters of second string
+            if i == 0:
+                dp[i][j] = j * insert_cost    # Min. operations = j * insert_cost
+ 
+            # If second string is empty, only option is to
+            # remove all characters of first string
+            elif j == 0:
+                dp[i][j] = i * delete_cost    # Min. operations = i * delete_cost
+ 
+            # If last characters are same, ignore last char
+            # and recur for remaining string
+            elif str1[i-1] == str2[j-1]:
+                dp[i][j] = dp[i-1][j-1]
+ 
+            # If last characters are different, consider all
+            # possibilities and find minimum
+            else:
+                dp[i][j] = min(
+                    dp[i][j-1] + insert_cost,   # Insert
+                    dp[i-1][j] + delete_cost,   # Remove
+                    dp[i-1][j-1] + substitute_cost  # Replace
+                )
+ 
+    return dp[m][n]
 
 def buildVocabulary(docs_list):
     """

@@ -28,7 +28,6 @@ class SpellCheck():
 
         for typos in text:
             for typo in typos:
-                print(typo)
                 candidates = self.find_candidate_corrections(typo)
                 corrections.append(candidates)
         return corrections

@@ -79,30 +79,54 @@ class SearchEngine:
 			segmentedQuery = self.segmentSentences(query)
 			segmentedQueries.append(segmentedQuery)
 		json.dump(segmentedQueries, open(self.args.out_folder + "segmented_queries.txt", 'w'))
+		
 		# Tokenize queries
 		tokenizedQueries = []
 		for query in segmentedQueries:
 			tokenizedQuery = self.tokenize(query)
 			tokenizedQueries.append(tokenizedQuery)
 		json.dump(tokenizedQueries, open(self.args.out_folder + "tokenized_queries.txt", 'w'))
+		
 		# Stem/Lemmatize queries
 		reducedQueries = []
 		for query in tokenizedQueries:
 			reducedQuery = self.reduceInflection(query)
 			reducedQueries.append(reducedQuery)
 		json.dump(reducedQueries, open(self.args.out_folder + "reduced_queries.txt", 'w'))
+		
 		# Remove stopwords from queries
 		stopwordRemovedQueries = []
 		for query in reducedQueries:
 			stopwordRemovedQuery = self.removeStopwords(query)
 			stopwordRemovedQueries.append(stopwordRemovedQuery)
 		json.dump(stopwordRemovedQueries, open(self.args.out_folder + "stopword_removed_queries.txt", 'w'))
-		# Spell check queries
-		spellCheckedQueries = []
-		for query in stopwordRemovedQueries:
-			spellCheckedQuery = self.spellCheck(query)
-			spellCheckedQueries.append(spellCheckedQuery)
-		json.dump(spellCheckedQueries, open(self.args.out_folder + "spell_checked_queries.txt", 'w'))
+		
+		if (args.custom):
+			# Spell check queries
+			spellCheckedQueries = []
+			closest_corrections = []
+			for query in stopwordRemovedQueries:
+				spellCheckedQuery = self.spellCheck(query)
+				spellCheckedQueries.append(spellCheckedQuery)
+				for q in query:
+					for qy in q:
+						print(qy)
+						closest_correction = None
+						min_distance = float('inf')
+						for spellCheckedQuery in spellCheckedQueries:
+							for corrected_word in spellCheckedQuery:
+								for words in corrected_word:
+									print(words)
+									distance = editDistance(qy, words[0])
+									if distance < min_distance:
+										min_distance = distance
+										closest_correction = words[0]
+						closest_corrections.append((closest_correction, min_distance))
+
+			json.dump(spellCheckedQueries, open(self.args.out_folder + "spell_checked_queries.txt", 'w'))
+
+			# Dump the closest corrections to a file
+			json.dump(closest_corrections, open(self.args.out_folder + "closest_corrections.txt", 'w'))
 
 		preprocessedQueries = stopwordRemovedQueries
 		return preprocessedQueries
@@ -118,32 +142,36 @@ class SearchEngine:
 			segmentedDoc = self.segmentSentences(doc)
 			segmentedDocs.append(segmentedDoc)
 		json.dump(segmentedDocs, open(self.args.out_folder + "segmented_docs.txt", 'w'))
+		
 		# Tokenize docs
 		tokenizedDocs = []
 		for doc in segmentedDocs:
 			tokenizedDoc = self.tokenize(doc)
 			tokenizedDocs.append(tokenizedDoc)
 		json.dump(tokenizedDocs, open(self.args.out_folder + "tokenized_docs.txt", 'w'))
+		
 		# Stem/Lemmatize docs
 		reducedDocs = []
 		for doc in tokenizedDocs:
 			reducedDoc = self.reduceInflection(doc)
 			reducedDocs.append(reducedDoc)
 		json.dump(reducedDocs, open(self.args.out_folder + "reduced_docs.txt", 'w'))
+		
 		# Remove stopwords from docs
 		stopwordRemovedDocs = []
 		for doc in reducedDocs:
 			stopwordRemovedDoc = self.removeStopwords(doc)
 			stopwordRemovedDocs.append(stopwordRemovedDoc)
 		json.dump(stopwordRemovedDocs, open(self.args.out_folder + "stopword_removed_docs.txt", 'w'))
-		# Build vocabulary from processed docs
-		vocabulary_vectors = buildVocabulary(stopwordRemovedDocs)
-		# Initialize SpellCheck with the vocabulary
-		self.spellChecker = SpellCheck(vocabulary_vectors)
+		
+		if(args.custom):
+			# Build vocabulary from processed docs
+			vocabulary_vectors = buildVocabulary(stopwordRemovedDocs)
+			# Initialize SpellCheck with the vocabulary
+			self.spellChecker = SpellCheck(vocabulary_vectors)
 
 		preprocessedDocs = stopwordRemovedDocs
 		return preprocessedDocs
-
 
 
 	def evaluateDataset(self):
@@ -162,6 +190,9 @@ class SearchEngine:
 		docs = [item["body"] for item in docs_json]
 		# Process documents
 		processedDocs = self.preprocessDocs(docs)
+
+		nltk.download('stopwords')
+		nltk.download('punkt')
 
 		# Remaning code will be added later
 
@@ -184,6 +215,9 @@ class SearchEngine:
 		# Process query
 		processedQuery = self.preprocessQueries([query])[0]
 
+		# Download the Punkt tokenizer if not already downloaded
+		nltk.download('punkt')
+		nltk.download('stopwords')
 		# Remaning code will be added later
 
 

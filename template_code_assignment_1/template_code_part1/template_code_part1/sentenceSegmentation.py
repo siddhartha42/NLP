@@ -49,8 +49,6 @@ class SentenceSegmentation():
 		list
 			A list of strings where each strin is a single sentence
 		"""
-		# Download the Punkt tokenizer if not already downloaded
-		nltk.download('punkt')
 		
 		# Use the Punkt tokenizer for sentence segmentation
 		segmentedText = sent_tokenize(text)

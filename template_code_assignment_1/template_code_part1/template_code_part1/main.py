@@ -2,11 +2,12 @@ from sentenceSegmentation import SentenceSegmentation
 from tokenization import Tokenization
 from inflectionReduction import InflectionReduction
 from stopwordRemoval import StopwordRemoval
+from spellCheck import SpellCheck
+from util import *
 
 import argparse
 import json
 from sys import version_info
-
 
 # Input compatibility for Python 2 and Python 3
 if version_info.major == 3:
@@ -26,6 +27,7 @@ class SearchEngine:
 		self.args = args
 		self.tokenizer = Tokenization()
 		self.sentenceSegmenter = SentenceSegmentation()
+		self.spellChecker = None
 		self.inflectionReducer = InflectionReduction()
 		self.stopwordRemover = StopwordRemoval()
 
@@ -46,6 +48,12 @@ class SearchEngine:
 			return self.tokenizer.naive(text)
 		elif self.args.tokenizer == "ptb":
 			return self.tokenizer.pennTreeBank(text)
+		
+	def spellCheck(self, text):
+		"""
+		Return the errors 
+		"""
+		return self.spellChecker.errors(text)
 
 	def reduceInflection(self, text):
 		"""
@@ -89,6 +97,12 @@ class SearchEngine:
 			stopwordRemovedQuery = self.removeStopwords(query)
 			stopwordRemovedQueries.append(stopwordRemovedQuery)
 		json.dump(stopwordRemovedQueries, open(self.args.out_folder + "stopword_removed_queries.txt", 'w'))
+		# Spell check queries
+		spellCheckedQueries = []
+		for query in stopwordRemovedQueries:
+			spellCheckedQuery = self.spellCheck(query)
+			spellCheckedQueries.append(spellCheckedQuery)
+		json.dump(spellCheckedQueries, open(self.args.out_folder + "spell_checked_queries.txt", 'w'))
 
 		preprocessedQueries = stopwordRemovedQueries
 		return preprocessedQueries
@@ -122,6 +136,10 @@ class SearchEngine:
 			stopwordRemovedDoc = self.removeStopwords(doc)
 			stopwordRemovedDocs.append(stopwordRemovedDoc)
 		json.dump(stopwordRemovedDocs, open(self.args.out_folder + "stopword_removed_docs.txt", 'w'))
+		# Build vocabulary from processed docs
+		vocabulary_vectors = buildVocabulary(stopwordRemovedDocs)
+		# Initialize SpellCheck with the vocabulary
+		self.spellChecker = SpellCheck(vocabulary_vectors)
 
 		preprocessedDocs = stopwordRemovedDocs
 		return preprocessedDocs
@@ -140,7 +158,7 @@ class SearchEngine:
 		processedQueries = self.preprocessQueries(queries)
 
 		# Read documents
-		docs_json = json.load(open(args.dataset + "\\cran_docs.json", 'r'))[:][:4]
+		docs_json = json.load(open(args.dataset + "\\cran_docs.json", 'r'))[:]
 		docs = [item["body"] for item in docs_json]
 		# Process documents
 		processedDocs = self.preprocessDocs(docs)
@@ -156,14 +174,15 @@ class SearchEngine:
 		#Get query
 		print("Enter query below")
 		query = input()
-		# Process documents
-		processedQuery = self.preprocessQueries([query])[0]
 
 		# Read documents
-		docs_json = json.load(open(args.dataset + "cran_docs.json", 'r'))[:10]
+		docs_json = json.load(open(args.dataset + "\\cran_docs.json", 'r'))[:]
 		docs = [item["body"] for item in docs_json]
 		# Process documents
 		processedDocs = self.preprocessDocs(docs)
+
+		# Process query
+		processedQuery = self.preprocessQueries([query])[0]
 
 		# Remaning code will be added later
 

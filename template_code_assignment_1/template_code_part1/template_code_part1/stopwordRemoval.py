@@ -3,8 +3,6 @@ from util import *
 # Add your import statements here
 
 
-
-
 class StopwordRemoval():
 
 	def fromList(self, text):

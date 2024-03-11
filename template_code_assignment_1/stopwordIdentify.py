@@ -34,7 +34,7 @@ def select_stopwords(term_freq, threshold):
     return [word for word, freq in term_freq.items() if freq > threshold]
 
 # Load corpus from JSON file (EDIT THE PATH TO DATASET HERE AND RUN THE FILE SEPARATELY)
-corpus_file = "C:/Users/Siddhartha/OneDrive/Desktop/Final Sem/NLP/Cranfield Dataset NLP/cranfield/cran_docs.json"
+corpus_file = r"C:\Users\Siddhartha\OneDrive\Desktop\Final Sem\NLP\template_code_assignment_1\cranfield\cran_docs.json"
 corpus = load_corpus_from_json(corpus_file)
 
 # Tokenization

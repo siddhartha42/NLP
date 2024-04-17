@@ -1,63 +1,47 @@
 from util import *
-
-# Add your import statements here
-
-
-
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+import numpy as np
 
 class InformationRetrieval():
 
 	def __init__(self):
 		self.index = None
+		self.vectorizer = TfidfVectorizer()
 
 	def buildIndex(self, docs, docIDs):
 		"""
 		Builds the document index in terms of the document
 		IDs and stores it in the 'index' class variable
-
-		Parameters
-		----------
-		arg1 : list
-			A list of lists of lists where each sub-list is
-			a document and each sub-sub-list is a sentence of the document
-		arg2 : list
-			A list of integers denoting IDs of the documents
-		Returns
-		-------
-		None
 		"""
+		# Flatten the documents list to form the corpus
+		corpus = [' '.join([' '.join(sentence) for sentence in doc]) for doc in docs]
 
-		index = None
+		# Generate the TF-IDF matrix
+		tfidf_matrix = self.vectorizer.fit_transform(corpus)
 
-		#Fill in code here
-
-		self.index = index
-
+		# Build the index as a dictionary mapping from document IDs to TF-IDF vectors
+		self.index = dict(zip(docIDs, tfidf_matrix.toarray()))
 
 	def rank(self, queries):
 		"""
 		Rank the documents according to relevance for each query
-
-		Parameters
-		----------
-		arg1 : list
-			A list of lists of lists where each sub-list is a query and
-			each sub-sub-list is a sentence of the query
-		
-
-		Returns
-		-------
-		list
-			A list of lists of integers where the ith sub-list is a list of IDs
-			of documents in their predicted order of relevance to the ith query
 		"""
-
 		doc_IDs_ordered = []
 
-		#Fill in code here
-	
+		# Flatten the queries list
+		queries = [' '.join([' '.join(sentence) for sentence in query]) for query in queries]
+
+		# Transform the query to its TF-IDF representation
+		query_tfidf = self.vectorizer.transform(queries)
+
+		# Calculate the cosine similarity of every document with respect to the query
+		for query in query_tfidf:
+			similarity_scores = {docID: cosine_similarity(query, tfidf_vector.reshape(1, -1)) for docID, tfidf_vector in self.index.items()}
+
+			# Sort the document IDs according to their cosine similarity
+			sorted_doc_IDs = sorted(similarity_scores.keys(), key=lambda x: similarity_scores[x], reverse=True)
+
+			doc_IDs_ordered.append(sorted_doc_IDs)
+
 		return doc_IDs_ordered
-
-
-
-

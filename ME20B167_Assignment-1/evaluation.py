@@ -1,332 +1,364 @@
 from util import *
-import numpy as np
+from typing import List
 
 class Evaluation():
 
-	def queryPrecision(self, query_doc_IDs_ordered, query_id, true_doc_IDs, k):
-		"""
-		Computation of precision of the Information Retrieval System
-		at a given value of k for a single query
+    def queryPrecision(self, query_doc_IDs_ordered: List[int], query_id: int, true_doc_IDs: List[int], k: int) -> float:
+        """
+        Computation of precision of the Information Retrieval System
+        at a given value of k for a single query
 
-		Parameters
-		----------
-		arg1 : list
-			A list of integers denoting the IDs of documents in
-			their predicted order of relevance to a query
-		arg2 : int
-			The ID of the query in question
-		arg3 : list
-			The list of IDs of documents relevant to the query (ground truth)
-		arg4 : int
-			The k value
+        Parameters
+        ----------
+        query_doc_IDs_ordered : List[int]
+            A list of integers denoting the IDs of documents in
+            their predicted order of relevance to a query
+        query_id : int
+            The ID of the query in question
+        true_doc_IDs : List[int]
+            The list of IDs of documents relevant to the query (ground truth)
+        k : int
+            The k value
 
-		Returns
-		-------
-		float
-			The precision value as a number between 0 and 1
-		"""
+        Returns
+        -------
+        float
+            The precision value as a number between 0 and 1
+        """
 
-		relevant_docs = set(true_doc_IDs)
-		retrieved_docs = set(query_doc_IDs_ordered[:k])
-		precision = len(relevant_docs & retrieved_docs) / k
+        relevant_docs = set(true_doc_IDs)
+        retrieved_docs = query_doc_IDs_ordered[:k]
 
-		return precision
+        relevant_retrieved_docs = relevant_docs.intersection(retrieved_docs)
+        precision = len(relevant_retrieved_docs) / k if k != 0 else 0
 
+        return precision
 
-	def meanPrecision(self, doc_IDs_ordered, query_ids, qrels, k):
-		"""
-		Computation of precision of the Information Retrieval System
-		at a given value of k, averaged over all the queries
+    def meanPrecision(self, doc_IDs_ordered: List[List[int]], query_ids: List[int], qrels: List[dict], k: int) -> float:
+        """
+        Computation of precision of the Information Retrieval System
+        at a given value of k, averaged over all the queries
 
-		Parameters
-		----------
-		arg1 : list
-			A list of lists of integers where the ith sub-list is a list of IDs
-			of documents in their predicted order of relevance to the ith query
-		arg2 : list
-			A list of IDs of the queries for which the documents are ordered
-		arg3 : list
-			A list of dictionaries containing document-relevance
-			judgements - Refer cran_qrels.json for the structure of each
-			dictionary
-		arg4 : int
-			The k value
+        Parameters
+        ----------
+        doc_IDs_ordered : List[List[int]]
+            A list of lists of integers where the ith sub-list is a list of IDs
+            of documents in their predicted order of relevance to the ith query
+        query_ids : List[int]
+            A list of IDs of the queries for which the documents are ordered
+        qrels : List[dict]
+            A list of dictionaries containing document-relevance
+            judgements - Refer cran_qrels.json for the structure of each
+            dictionary
+        k : int
+            The k value
 
-		Returns
-		-------
-		float
-			The mean precision value as a number between 0 and 1
-		"""
+        Returns
+        -------
+        float
+            The mean precision value as a number between 0 and 1
+        """
 
-		precisions = [self.queryPrecision(doc_IDs_ordered[i], query_ids[i], qrels[i], k) for i in range(len(query_ids))] 
-		meanPrecision = np.mean(precisions)
+        total_precision = 0
+        num_queries = len(doc_IDs_ordered)
 
-		return meanPrecision
+        for i in range(num_queries):
+            query_id = query_ids[i]
+            relevant_docs = [item['id'] for item in qrels if item['query_num'] == query_id and item['relevance'] == 1]
+            precision = self.queryPrecision(doc_IDs_ordered[i], query_id, relevant_docs, k)
+            total_precision += precision
 
-	
-	def queryRecall(self, query_doc_IDs_ordered, query_id, true_doc_IDs, k):
-		"""
-		Computation of recall of the Information Retrieval System
-		at a given value of k for a single query
+        mean_precision = total_precision / num_queries if num_queries != 0 else 0
 
-		Parameters
-		----------
-		arg1 : list
-			A list of integers denoting the IDs of documents in
-			their predicted order of relevance to a query
-		arg2 : int
-			The ID of the query in question
-		arg3 : list
-			The list of IDs of documents relevant to the query (ground truth)
-		arg4 : int
-			The k value
+        return mean_precision
 
-		Returns
-		-------
-		float
-			The recall value as a number between 0 and 1
-		"""
+    def queryRecall(self, query_doc_IDs_ordered: List[int], query_id: int, true_doc_IDs: List[int], k: int) -> float:
+        """
+        Computation of recall of the Information Retrieval System
+        at a given value of k for a single query
 
-		relevant_docs = set(true_doc_IDs)
-		retrieved_docs = set(query_doc_IDs_ordered[:k])
-		recall = len(relevant_docs & retrieved_docs) / len(relevant_docs)
+        Parameters
+        ----------
+        query_doc_IDs_ordered : List[int]
+            A list of integers denoting the IDs of documents in
+            their predicted order of relevance to a query
+        query_id : int
+            The ID of the query in question
+        true_doc_IDs : List[int]
+            The list of IDs of documents relevant to the query (ground truth)
+        k : int
+            The k value
 
-		return recall
+        Returns
+        -------
+        float
+            The recall value as a number between 0 and 1
+        """
 
+        relevant_docs = set(true_doc_IDs)
+        retrieved_docs = query_doc_IDs_ordered[:k]
 
-	def meanRecall(self, doc_IDs_ordered, query_ids, qrels, k):
-		"""
-		Computation of recall of the Information Retrieval System
-		at a given value of k, averaged over all the queries
+        relevant_retrieved_docs = relevant_docs.intersection(retrieved_docs)
+        recall = len(relevant_retrieved_docs) / len(relevant_docs) if len(relevant_docs) != 0 else 0
 
-		Parameters
-		----------
-		arg1 : list
-			A list of lists of integers where the ith sub-list is a list of IDs
-			of documents in their predicted order of relevance to the ith query
-		arg2 : list
-			A list of IDs of the queries for which the documents are ordered
-		arg3 : list
-			A list of dictionaries containing document-relevance
-			judgements - Refer cran_qrels.json for the structure of each
-			dictionary
-		arg4 : int
-			The k value
+        return recall
 
-		Returns
-		-------
-		float
-			The mean recall value as a number between 0 and 1
-		"""
+    def meanRecall(self, doc_IDs_ordered: List[List[int]], query_ids: List[int], qrels: List[dict], k: int) -> float:
+        """
+        Computation of recall of the Information Retrieval System
+        at a given value of k, averaged over all the queries
 
-		recalls = [self.queryRecall(doc_IDs_ordered[i], query_ids[i], qrels[i], k) for i in range(len(query_ids))]
-		meanRecall = np.mean(recalls)
+        Parameters
+        ----------
+        doc_IDs_ordered : List[List[int]]
+            A list of lists of integers where the ith sub-list is a list of IDs
+            of documents in their predicted order of relevance to the ith query
+        query_ids : List[int]
+            A list of IDs of the queries for which the documents are ordered
+        qrels : List[dict]
+            A list of dictionaries containing document-relevance
+            judgements - Refer cran_qrels.json for the structure of each
+            dictionary
+        k : int
+            The k value
 
-		return meanRecall
+        Returns
+        -------
+        float
+            The mean recall value as a number between 0 and 1
+        """
 
+        total_recall = 0
+        num_queries = len(doc_IDs_ordered)
 
-	def queryFscore(self, query_doc_IDs_ordered, query_id, true_doc_IDs, k):
-		"""
-		Computation of fscore of the Information Retrieval System
-		at a given value of k for a single query
+        for i in range(num_queries):
+            query_id = query_ids[i]
+            relevant_docs = [item['id'] for item in qrels if item['query_num'] == query_id and item['relevance'] == 1]
+            recall = self.queryRecall(doc_IDs_ordered[i], query_id, relevant_docs, k)
+            total_recall += recall
 
-		Parameters
-		----------
-		arg1 : list
-			A list of integers denoting the IDs of documents in
-			their predicted order of relevance to a query
-		arg2 : int
-			The ID of the query in question
-		arg3 : list
-			The list of IDs of documents relevant to the query (ground truth)
-		arg4 : int
-			The k value
+        mean_recall = total_recall / num_queries if num_queries != 0 else 0
 
-		Returns
-		-------
-		float
-			The fscore value as a number between 0 and 1
-		"""
+        return mean_recall
 
-		precision = self.queryPrecision(query_doc_IDs_ordered, query_id, true_doc_IDs, k)
-		recall = self.queryRecall(query_doc_IDs_ordered, query_id, true_doc_IDs, k)
-		denominator = ((0.5**2 * precision) + recall)
-		if denominator != 0:
-			fscore = (1 + 0.5**2) * (precision * recall) / denominator
-		else:
-			fscore = 0
+    def queryFscore(self, query_doc_IDs_ordered: List[int], query_id: int, true_doc_IDs: List[int], k: int) -> float:
+        """
+        Computation of fscore of the Information Retrieval System
+        at a given value of k for a single query
 
-		return fscore
+        Parameters
+        ----------
+        query_doc_IDs_ordered : List[int]
+            A list of integers denoting the IDs of documents in
+            their predicted order of relevance to a query
+        query_id : int
+            The ID of the query in question
+        true_doc_IDs : List[int]
+            The list of IDs of documents relevant to the query (ground truth)
+        k : int
+            The k value
 
+        Returns
+        -------
+        float
+            The fscore value as a number between 0 and 1
+        """
 
-	def meanFscore(self, doc_IDs_ordered, query_ids, qrels, k):
-		"""
-		Computation of fscore of the Information Retrieval System
-		at a given value of k, averaged over all the queries
+        precision = self.queryPrecision(query_doc_IDs_ordered, query_id, true_doc_IDs, k)
+        recall = self.queryRecall(query_doc_IDs_ordered, query_id, true_doc_IDs, k)
 
-		Parameters
-		----------
-		arg1 : list
-			A list of lists of integers where the ith sub-list is a list of IDs
-			of documents in their predicted order of relevance to the ith query
-		arg2 : list
-			A list of IDs of the queries for which the documents are ordered
-		arg3 : list
-			A list of dictionaries containing document-relevance
-			judgements - Refer cran_qrels.json for the structure of each
-			dictionary
-		arg4 : int
-			The k value
-		
-		Returns
-		-------
-		float
-			The mean fscore value as a number between 0 and 1
-		"""
+        fscore = (2 * precision * recall) / (precision + recall) if (precision + recall) != 0 else 0
 
-		fscores = [self.queryFscore(doc_IDs_ordered[i], query_ids[i], qrels[i], k) for i in range(len(query_ids))]
-		meanFscore = np.mean(fscores)
+        return fscore
 
-		return meanFscore
-	
+    def meanFscore(self, doc_IDs_ordered: List[List[int]], query_ids: List[int], qrels: List[dict], k: int) -> float:
+        """
+        Computation of fscore of the Information Retrieval System
+        at a given value of k, averaged over all the queries
 
-	def queryNDCG(self, query_doc_IDs_ordered, query_id, true_doc_IDs, k):
-		"""
-		Computation of nDCG of the Information Retrieval System
-		at given value of k for a single query
+        Parameters
+        ----------
+        doc_IDs_ordered : List[List[int]]
+            A list of lists of integers where the ith sub-list is a list of IDs
+            of documents in their predicted order of relevance to the ith query
+        query_ids : List[int]
+            A list of IDs of the queries for which the documents are ordered
+        qrels : List[dict]
+            A list of dictionaries containing document-relevance
+            judgements - Refer cran_qrels.json for the structure of each
+            dictionary
+        k : int
+            The k value
+        
+        Returns
+        -------
+        float
+            The mean fscore value as a number between 0 and 1
+        """
 
-		Parameters
-		----------
-		arg1 : list
-			A list of integers denoting the IDs of documents in
-			their predicted order of relevance to a query
-		arg2 : int
-			The ID of the query in question
-		arg3 : list
-			The list of IDs of documents relevant to the query (ground truth)
-		arg4 : int
-			The k value
+        total_fscore = 0
+        num_queries = len(doc_IDs_ordered)
 
-		Returns
-		-------
-		float
-			The nDCG value as a number between 0 and 1
-		"""
+        for i in range(num_queries):
+            query_id = query_ids[i]
+            relevant_docs = [item['id'] for item in qrels if item['query_num'] == query_id and item['relevance'] == 1]
+            fscore = self.queryFscore(doc_IDs_ordered[i], query_id, relevant_docs, k)
+            total_fscore += fscore
 
-		dcg = 0
-		idcg = 0
-		for i in range(k):
-			if i < len(query_doc_IDs_ordered) and query_doc_IDs_ordered[i] in true_doc_IDs:
-				dcg += 1 / np.log2(i+2)
-			if i < len(true_doc_IDs):
-				idcg += 1 / np.log2(i+2)
-		nDCG = dcg / idcg if idcg > 0 else 0
+        mean_fscore = total_fscore / num_queries if num_queries != 0 else 0
 
-		return nDCG
+        return mean_fscore
 
+    def queryNDCG(self, query_doc_IDs_ordered: List[int], query_id: int, true_doc_IDs: List[int], k: int) -> float:
+        """
+        Computation of nDCG of the Information Retrieval System
+        at given value of k for a single query
 
-	def meanNDCG(self, doc_IDs_ordered, query_ids, qrels, k):
-		"""
-		Computation of nDCG of the Information Retrieval System
-		at a given value of k, averaged over all the queries
+        Parameters
+        ----------
+        query_doc_IDs_ordered : List[int]
+            A list of integers denoting the IDs of documents in
+            their predicted order of relevance to a query
+        query_id : int
+            The ID of the query in question
+        true_doc_IDs : List[int]
+            The list of IDs of documents relevant to the query (ground truth)
+        k : int
+            The k value
 
-		Parameters
-		----------
-		arg1 : list
-			A list of lists of integers where the ith sub-list is a list of IDs
-			of documents in their predicted order of relevance to the ith query
-		arg2 : list
-			A list of IDs of the queries for which the documents are ordered
-		arg3 : list
-			A list of dictionaries containing document-relevance
-			judgements - Refer cran_qrels.json for the structure of each
-			dictionary
-		arg4 : int
-			The k value
+        Returns
+        -------
+        float
+            The nDCG value as a number between 0 and 1
+        """
 
-		Returns
-		-------
-		float
-			The mean nDCG value as a number between 0 and 1
-		"""
+        # Compute DCG
+        DCG = 0
+        for i in range(min(k, len(query_doc_IDs_ordered))):
+            doc_id = query_doc_IDs_ordered[i]
+            if doc_id in true_doc_IDs:
+                relevance = 1 / (i + 1)
+                DCG += relevance
 
-		sumNDCG = 0
-		for query_id, query_doc_IDs_ordered in zip(query_ids, doc_IDs_ordered):
-			true_doc_IDs = qrels[query_id]
-			sumNDCG += self.queryNDCG(query_doc_IDs_ordered, query_id, true_doc_IDs, k)
-		meanNDCG = float(sumNDCG) / len(query_ids)
+        # Compute ideal DCG
+        ideal_DCG = sum([1 / (i + 1) for i in range(min(k, len(true_doc_IDs)))])
 
-		return meanNDCG
+        # Compute nDCG
+        nDCG = DCG / ideal_DCG if ideal_DCG != 0 else 0
 
+        return nDCG
 
-	def queryAveragePrecision(self, query_doc_IDs_ordered, query_id, true_doc_IDs, k):
-		"""
-		Computation of average precision of the Information Retrieval System
-		at a given value of k for a single query (the average of precision@i
-		values for i such that the ith document is truly relevant)
+    def meanNDCG(self, doc_IDs_ordered: List[List[int]], query_ids: List[int], qrels: List[dict], k: int) -> float:
+        """
+        Computation of nDCG of the Information Retrieval System
+        at a given value of k, averaged over all the queries
 
-		Parameters
-		----------
-		arg1 : list
-			A list of integers denoting the IDs of documents in
-			their predicted order of relevance to a query
-		arg2 : int
-			The ID of the query in question
-		arg3 : list
-			The list of documents relevant to the query (ground truth)
-		arg4 : int
-			The k value
+        Parameters
+        ----------
+        doc_IDs_ordered : List[List[int]]
+            A list of lists of integers where the ith sub-list is a list of IDs
+            of documents in their predicted order of relevance to the ith query
+        query_ids : List[int]
+            A list of IDs of the queries for which the documents are ordered
+        qrels : List[dict]
+            A list of dictionaries containing document-relevance
+            judgements - Refer cran_qrels.json for the structure of each
+            dictionary
+        k : int
+            The k value
 
-		Returns
-		-------
-		float
-			The average precision value as a number between 0 and 1
-		"""
+        Returns
+        -------
+        float
+            The mean nDCG value as a number between 0 and 1
+        """
 
-		sumPrecision = 0
-		numRelevant = 0
+        total_NDCG = 0
+        num_queries = len(doc_IDs_ordered)
 
-		for i in range(min(k, len(query_doc_IDs_ordered))):
-			if query_doc_IDs_ordered[i] in true_doc_IDs:
-				numRelevant +=1
-				sumPrecision += numRelevant / (i+1)
+        for i in range(num_queries):
+            query_id = query_ids[i]
+            true_doc_IDs = [item['id'] for item in qrels if item['query_num'] == query_id and item['relevance'] == 1]
+            nDCG = self.queryNDCG(doc_IDs_ordered[i], query_id, true_doc_IDs, k)
+            total_NDCG += nDCG
 
-		avgPrecision = sumPrecision / min(k, len(true_doc_IDs)) if true_doc_IDs else 0
+        mean_NDCG = total_NDCG / num_queries if num_queries != 0 else 0
 
-		return avgPrecision
+        return mean_NDCG
 
+    def queryAveragePrecision(self, query_doc_IDs_ordered: List[int], query_id: int, true_doc_IDs: List[int], k: int) -> float:
+        """
+        Computation of average precision of the Information Retrieval System
+        at a given value of k for a single query (the average of precision@i
+        values for i such that the ith document is truly relevant)
 
-	def meanAveragePrecision(self, doc_IDs_ordered, query_ids, q_rels, k):
-		"""
-		Computation of MAP of the Information Retrieval System
-		at given value of k, averaged over all the queries
+        Parameters
+        ----------
+        query_doc_IDs_ordered : List[int]
+            A list of integers denoting the IDs of documents in
+            their predicted order of relevance to a query
+        query_id : int
+            The ID of the query in question
+        true_doc_IDs : List[int]
+            The list of documents relevant to the query (ground truth)
+        k : int
+            The k value
 
-		Parameters
-		----------
-		arg1 : list
-			A list of lists of integers where the ith sub-list is a list of IDs
-			of documents in their predicted order of relevance to the ith query
-		arg2 : list
-			A list of IDs of the queries
-		arg3 : list
-			A list of dictionaries containing document-relevance
-			judgements - Refer cran_qrels.json for the structure of each
-			dictionary
-		arg4 : int
-			The k value
+        Returns
+        -------
+        float
+            The average precision value as a number between 0 and 1
+        """
 
-		Returns
-		-------
-		float
-			The MAP value as a number between 0 and 1
-		"""
+        relevant_docs = set(true_doc_IDs)
+        precision_sum = 0
+        num_relevant_docs_seen = 0
 
-		sumAvgPrecision = 0
-		for query_id, query_doc_IDs_ordered in zip(query_ids, doc_IDs_ordered):
-			true_doc_IDs = q_rels[query_id]
-			sumAvgPrecision += self.queryAveragePrecision(query_doc_IDs_ordered, query_id, true_doc_IDs, k)
+        for i in range(min(k, len(query_doc_IDs_ordered))):
+            doc_id = query_doc_IDs_ordered[i]
+            if doc_id in relevant_docs:
+                num_relevant_docs_seen += 1
+                precision_at_i = num_relevant_docs_seen / (i + 1)
+                precision_sum += precision_at_i
 
-		meanAveragePrecision = float(sumAvgPrecision) / len(query_ids)
+        avg_precision = precision_sum / min(len(relevant_docs), k) if len(relevant_docs) != 0 else 0
 
-		return meanAveragePrecision
+        return avg_precision
 
+    def meanAveragePrecision(self, doc_IDs_ordered: List[List[int]], query_ids: List[int], q_rels: List[dict], k: int) -> float:
+        """
+        Computation of MAP of the Information Retrieval System
+        at given value of k, averaged over all the queries
+
+        Parameters
+        ----------
+        doc_IDs_ordered : List[List[int]]
+            A list of lists of integers where the ith sub-list is a list of IDs
+            of documents in their predicted order of relevance to the ith query
+        query_ids : List[int]
+            A list of IDs of the queries
+        q_rels : List[dict]
+            A list of dictionaries containing document-relevance
+            judgements - Refer cran_qrels.json for the structure of each
+            dictionary
+        k : int
+            The k value
+
+        Returns
+        -------
+        float
+            The MAP value as a number between 0 and 1
+        """
+
+        total_avg_precision = 0
+        num_queries = len(doc_IDs_ordered)
+
+        for i in range(num_queries):
+            query_id = query_ids[i]
+            true_doc_IDs = [item['id'] for item in q_rels if item['query_num'] == query_id and item['relevance'] == 1]
+            avg_precision = self.queryAveragePrecision(doc_IDs_ordered[i], query_id, true_doc_IDs, k)
+            total_avg_precision += avg_precision
+
+        mean_avg_precision = total_avg_precision / num_queries if num_queries != 0 else 0
+
+        return mean_avg_precision

@@ -212,6 +212,7 @@ class SearchEngine:
 
 		# Build document index
 		self.informationRetriever.buildIndex(processedDocs, doc_ids)
+
 		# Rank the documents for each query
 		doc_IDs_ordered = self.informationRetriever.rank(processedQueries)
 
@@ -255,7 +256,6 @@ class SearchEngine:
 
 		nltk.download('stopwords')
 		nltk.download('punkt')
-
 
 	def handleCustomQuery(self):
 		"""

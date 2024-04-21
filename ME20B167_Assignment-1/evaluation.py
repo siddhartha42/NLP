@@ -26,12 +26,13 @@ class Evaluation():
             The precision value as a number between 0 and 1
         """
 
-        relevant_docs = set(true_doc_IDs)
+        relevant_docs = true_doc_IDs
         retrieved_docs = query_doc_IDs_ordered[:k]
 
-        relevant_retrieved_docs = relevant_docs.intersection(retrieved_docs)
-        precision = len(relevant_retrieved_docs) / k if k != 0 else 0
-
+        relevant_retrieved_docs = intersection(relevant_docs, retrieved_docs)
+       
+        precision = len(relevant_retrieved_docs) / k 
+        
         return precision
 
     def meanPrecision(self, doc_IDs_ordered: List[List[int]], query_ids: List[int], qrels: List[dict], k: int) -> float:
@@ -63,12 +64,14 @@ class Evaluation():
         num_queries = len(doc_IDs_ordered)
 
         for i in range(num_queries):
-            query_id = query_ids[i]
-            relevant_docs = [item['id'] for item in qrels if item['query_num'] == query_id and item['relevance'] == 1]
-            precision = self.queryPrecision(doc_IDs_ordered[i], query_id, relevant_docs, k)
+            relevant_docs = []
+            for item in qrels:
+                if query_ids[i] == item['query_num']:
+                    relevant_docs.append(item['id'])
+            precision = self.queryPrecision(doc_IDs_ordered[i], query_ids[i], relevant_docs, k)
             total_precision += precision
 
-        mean_precision = total_precision / num_queries if num_queries != 0 else 0
+        mean_precision = total_precision / num_queries 
 
         return mean_precision
 
@@ -133,7 +136,7 @@ class Evaluation():
 
         for i in range(num_queries):
             query_id = query_ids[i]
-            relevant_docs = [item['id'] for item in qrels if item['query_num'] == query_id and item['relevance'] == 1]
+            relevant_docs = [item['id'] for item in qrels if item['query_num'] == query_id and item['position'] == 1]
             recall = self.queryRecall(doc_IDs_ordered[i], query_id, relevant_docs, k)
             total_recall += recall
 

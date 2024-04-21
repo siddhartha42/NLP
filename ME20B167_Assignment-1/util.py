@@ -106,3 +106,10 @@ def cosine_similarity(vec1, vec2):
         return 0
     else:
         return dot_product / (magnitude1 * magnitude2) 
+    
+def intersection(lst1, lst2):
+ 
+    # Use of hybrid method
+    temp = set(lst2)
+    lst3 = [value for value in lst1 if value in temp]
+    return lst3

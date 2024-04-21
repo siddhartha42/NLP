@@ -210,6 +210,9 @@ class SearchEngine:
 		# Process documents
 		processedDocs = self.preprocessDocs(docs)
 
+		nltk.download('stopwords')
+		nltk.download('punkt')
+
 		# Build document index
 		self.informationRetriever.buildIndex(processedDocs, doc_ids)
 
@@ -254,8 +257,7 @@ class SearchEngine:
 		plt.xlabel("k")
 		plt.savefig(args.out_folder + "eval_plot.png")
 
-		nltk.download('stopwords')
-		nltk.download('punkt')
+		
 
 	def handleCustomQuery(self):
 		"""
@@ -275,6 +277,10 @@ class SearchEngine:
 		# Process documents
 		processedDocs = self.preprocessDocs(docs)
 
+		# Download the Punkt tokenizer if not already downloaded
+		nltk.download('punkt')
+		nltk.download('stopwords')
+
 		# Build document index
 		self.informationRetriever.buildIndex(processedDocs, doc_ids)
 		# Rank the documents for the query
@@ -284,10 +290,6 @@ class SearchEngine:
 		print("\nTop five document IDs : ")
 		for id_ in doc_IDs_ordered[:5]:
 			print(id_)
-
-		# Download the Punkt tokenizer if not already downloaded
-		nltk.download('punkt')
-		nltk.download('stopwords')
 
 
 if __name__ == "__main__":

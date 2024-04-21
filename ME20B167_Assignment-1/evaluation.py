@@ -31,7 +31,7 @@ class Evaluation():
 
         relevant_retrieved_docs = intersection(relevant_docs, retrieved_docs)
        
-        precision = len(relevant_retrieved_docs) / k 
+        precision = float( len(relevant_retrieved_docs) / k )
         
         return precision
 
@@ -66,12 +66,12 @@ class Evaluation():
         for i in range(num_queries):
             relevant_docs = []
             for item in qrels:
-                if query_ids[i] == item['query_num']:
-                    relevant_docs.append(item['id'])
+                if int(query_ids[i]) == int(item['query_num']):
+                    relevant_docs.append(int(item['id']))
             precision = self.queryPrecision(doc_IDs_ordered[i], query_ids[i], relevant_docs, k)
             total_precision += precision
 
-        mean_precision = total_precision / num_queries 
+        mean_precision = float(total_precision / num_queries)
 
         return mean_precision
 
@@ -98,10 +98,10 @@ class Evaluation():
             The recall value as a number between 0 and 1
         """
 
-        relevant_docs = set(true_doc_IDs)
+        relevant_docs = true_doc_IDs
         retrieved_docs = query_doc_IDs_ordered[:k]
 
-        relevant_retrieved_docs = relevant_docs.intersection(retrieved_docs)
+        relevant_retrieved_docs = intersection(relevant_docs, retrieved_docs)
         recall = len(relevant_retrieved_docs) / len(relevant_docs) if len(relevant_docs) != 0 else 0
 
         return recall
@@ -135,12 +135,14 @@ class Evaluation():
         num_queries = len(doc_IDs_ordered)
 
         for i in range(num_queries):
-            query_id = query_ids[i]
-            relevant_docs = [item['id'] for item in qrels if item['query_num'] == query_id and item['position'] == 1]
-            recall = self.queryRecall(doc_IDs_ordered[i], query_id, relevant_docs, k)
+            relevant_docs = []
+            for item in qrels:
+                if int(query_ids[i]) == int(item['query_num']):
+                    relevant_docs.append(int(item['id']))
+            recall = self.queryRecall(doc_IDs_ordered[i], query_ids[i], relevant_docs, k)
             total_recall += recall
 
-        mean_recall = total_recall / num_queries if num_queries != 0 else 0
+        mean_recall = total_recall / num_queries 
 
         return mean_recall
 
@@ -203,9 +205,11 @@ class Evaluation():
         num_queries = len(doc_IDs_ordered)
 
         for i in range(num_queries):
-            query_id = query_ids[i]
-            relevant_docs = [item['id'] for item in qrels if item['query_num'] == query_id and item['relevance'] == 1]
-            fscore = self.queryFscore(doc_IDs_ordered[i], query_id, relevant_docs, k)
+            relevant_docs = []
+            for item in qrels:
+                if int(query_ids[i]) == int(item['query_num']):
+                    relevant_docs.append(int(item['id']))
+            fscore = self.queryFscore(doc_IDs_ordered[i], query_ids[i], relevant_docs, k)
             total_fscore += fscore
 
         mean_fscore = total_fscore / num_queries if num_queries != 0 else 0
@@ -280,9 +284,11 @@ class Evaluation():
         num_queries = len(doc_IDs_ordered)
 
         for i in range(num_queries):
-            query_id = query_ids[i]
-            true_doc_IDs = [item['id'] for item in qrels if item['query_num'] == query_id and item['relevance'] == 1]
-            nDCG = self.queryNDCG(doc_IDs_ordered[i], query_id, true_doc_IDs, k)
+            relevant_docs = []
+            for item in qrels:
+                if int(query_ids[i]) == int(item['query_num']):
+                    relevant_docs.append(int(item['id']))
+            nDCG = self.queryNDCG(doc_IDs_ordered[i], query_ids[i], relevant_docs, k)
             total_NDCG += nDCG
 
         mean_NDCG = total_NDCG / num_queries if num_queries != 0 else 0
@@ -357,9 +363,11 @@ class Evaluation():
         num_queries = len(doc_IDs_ordered)
 
         for i in range(num_queries):
-            query_id = query_ids[i]
-            true_doc_IDs = [item['id'] for item in q_rels if item['query_num'] == query_id and item['relevance'] == 1]
-            avg_precision = self.queryAveragePrecision(doc_IDs_ordered[i], query_id, true_doc_IDs, k)
+            relevant_docs = []
+            for item in q_rels:
+                if int(query_ids[i]) == int(item['query_num']):
+                    relevant_docs.append(int(item['id']))
+            avg_precision = self.queryAveragePrecision(doc_IDs_ordered[i], query_ids[i], relevant_docs, k)
             total_avg_precision += avg_precision
 
         mean_avg_precision = total_avg_precision / num_queries if num_queries != 0 else 0

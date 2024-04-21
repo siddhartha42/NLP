@@ -6,6 +6,7 @@ from spellCheck import SpellCheck
 from informationRetrieval import InformationRetrieval
 from evaluation import Evaluation
 from util import *
+import time
 
 import argparse
 import json
@@ -294,6 +295,8 @@ class SearchEngine:
 
 if __name__ == "__main__":
 
+	start_time = time.time()
+
 	# Create an argument parser
 	parser = argparse.ArgumentParser(description='main.py')
 
@@ -320,3 +323,8 @@ if __name__ == "__main__":
 		searchEngine.handleCustomQuery()
 	else:
 		searchEngine.evaluateDataset()
+	
+	end_time = time.time()
+
+	runtime = end_time - start_time
+	print("Total runtime: {:.2f} seconds".format(runtime))

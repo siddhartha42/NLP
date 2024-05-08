@@ -1,1 +1,1 @@
-[["boundari", 4], ["transient", 4], ["aeroplan", 6]]
+[["paper", 0], ["aerodynam", 0]]

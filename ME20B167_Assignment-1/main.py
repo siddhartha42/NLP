@@ -140,6 +140,11 @@ class SearchEngine:
 
 			# Dump the closest corrections to a file
 			json.dump(closest_corrections, open(self.args.out_folder + "closest_corrections.txt", 'w'))
+			
+			closest_corrections = [[[word[0] for word in closest_corrections]]]
+
+			return closest_corrections
+			
 
 		preprocessedQueries = stopwordRemovedQueries
 		return preprocessedQueries
@@ -257,7 +262,6 @@ class SearchEngine:
 		plt.title("Evaluation Metrics - Cranfield Dataset")
 		plt.xlabel("k")
 		plt.savefig(args.out_folder + "eval_plot.png")
-
 		
 
 	def handleCustomQuery(self):
@@ -268,15 +272,16 @@ class SearchEngine:
 		#Get query
 		print("Enter query below")
 		query = input()
-		# Process documents
-		processedQuery = self.preprocessQueries([query])[0]
 
 		# Read documents
 		docs_json = json.load(open(args.dataset + "cran_docs.json", 'r'))[:]
 		doc_ids, docs = [item["id"] for item in docs_json], \
 							[item["body"] for item in docs_json]
+		
 		# Process documents
 		processedDocs = self.preprocessDocs(docs)
+		
+		processedQuery = self.preprocessQueries([query])[0]
 
 		# Download the Punkt tokenizer if not already downloaded
 		nltk.download('punkt')
@@ -284,6 +289,7 @@ class SearchEngine:
 
 		# Build document index
 		self.informationRetriever.buildIndex(processedDocs, doc_ids)
+
 		# Rank the documents for the query
 		doc_IDs_ordered = self.informationRetriever.rank([processedQuery])[0]
 

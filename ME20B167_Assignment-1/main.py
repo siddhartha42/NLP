@@ -141,11 +141,16 @@ class SearchEngine:
 			# Dump the closest corrections to a file
 			json.dump(closest_corrections, open(self.args.out_folder + "closest_corrections.txt", 'w'))
 			
+			# Extract the words and join them into a string
+			final_query = ' '.join(word[0] for word in closest_corrections)
+		
 			closest_corrections = [[[word[0] for word in closest_corrections]]]
 
-			return closest_corrections
-			
+			print("searching for:", final_query)
 
+			preprocessedQueries = closest_corrections
+			return preprocessedQueries
+			
 		preprocessedQueries = stopwordRemovedQueries
 		return preprocessedQueries
 
@@ -216,9 +221,6 @@ class SearchEngine:
 		# Process documents
 		processedDocs = self.preprocessDocs(docs)
 
-		nltk.download('stopwords')
-		nltk.download('punkt')
-
 		# Build document index
 		self.informationRetriever.buildIndex(processedDocs, doc_ids)
 
@@ -282,10 +284,6 @@ class SearchEngine:
 		processedDocs = self.preprocessDocs(docs)
 		
 		processedQuery = self.preprocessQueries([query])[0]
-
-		# Download the Punkt tokenizer if not already downloaded
-		nltk.download('punkt')
-		nltk.download('stopwords')
 
 		# Build document index
 		self.informationRetriever.buildIndex(processedDocs, doc_ids)
